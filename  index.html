@@ -1,0 +1,90 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JOTA2026</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;background:#10121a;color:white;
+  font-family:Arial,sans-serif;text-align:center;
+}
+.container{max-width:430px;margin:45px auto;padding:22px}
+h1{color:#20d88a;font-size:38px}
+.card{
+  background:#202432;padding:25px;border-radius:15px;
+  margin-top:25px;box-shadow:0 5px 20px #0005;
+}
+input,button{
+  width:100%;padding:15px;margin-top:15px;
+  border:0;border-radius:9px;font-size:17px;
+}
+input{background:#303747;color:white}
+button{background:#16b978;color:white;font-weight:bold}
+.status{color:#ffbd45;margin:15px}
+.small{color:#aab1c0;font-size:13px}
+#dashboard{display:none}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>JOTA2026</h1>
+  <p>مرحباً بك في الموقع الرسمي</p>
+
+  <div class="card" id="login">
+    <h2>تسجيل الدخول</h2>
+    <input id="player" placeholder="رقم اللاعب">
+    <input id="code" type="password" placeholder="رمز التفعيل">
+    <button onclick="login()">دخول</button>
+    <p class="status" id="message">جاري فحص اتصال السيرفر...</p>
+  </div>
+
+  <div class="card" id="dashboard">
+    <h2>أهلاً بك في JOTA2026</h2>
+    <p>تم تسجيل الدخول بنجاح</p>
+    <p class="small">هذه واجهة تجريبية وليست أداة للتنبؤ بنتائج الألعاب.</p>
+    <button onclick="location.reload()">خروج</button>
+  </div>
+</div>
+
+<script>
+async function checkServer(){
+  const msg=document.getElementById("message");
+  try{
+    const r=await fetch("/api/health");
+    if(!r.ok) throw new Error();
+    msg.textContent="🟢 السيرفر متصل";
+  }catch(e){
+    msg.textContent="🔴 السيرفر غير متصل حالياً";
+  }
+}
+async function login(){
+  const player=document.getElementById("player").value.trim();
+  const code=document.getElementById("code").value.trim();
+  const msg=document.getElementById("message");
+
+  if(!player || !code){
+    msg.textContent="أدخل رقم اللاعب ورمز التفعيل";
+    return;
+  }
+  msg.textContent="جاري التحقق...";
+  try{
+    const r=await fetch("/api/login",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({player,code})
+    });
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.message || "بيانات غير صحيحة");
+    document.getElementById("login").style.display="none";
+    document.getElementById("dashboard").style.display="block";
+  }catch(e){
+    msg.textContent="تعذر الدخول: "+e.message;
+  }
+}
+checkServer();
+</script>
+</body>
+</html>
